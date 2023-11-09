@@ -1,9 +1,13 @@
 import os
-import datetime
+import datetime as dt
 import logging
 from collections import defaultdict
 
 class RcpMonitor:
+
+    WORKDAY = dt.timedelta(hours=8).total_seconds()//60
+    LOG_SPAN = dt.timedelta(days=32)
+
     def __init__(self, storage="~/.config/RCP_Monitor"):
         logging.info("RcpMonitor Init")
         self._log_dir = os.path.expanduser(storage)
@@ -11,14 +15,43 @@ class RcpMonitor:
         logging.debug(f"RcpMonitor storage in {self._log_file}")
         self._pattern = "%d-%m-%Y %H:%M:%S"
         self.log = []
-        self.worktime = {"day":defaultdict(datetime.timedelta), "week":0}
-        self.cw = datetime.date.today().isocalendar()[1]
+        self.worktime = {"day":defaultdict(dt.timedelta), "week":0}
+        self.cw = dt.date.today().isocalendar()[1]
         self.load_log()
         self.process_log()
+        if self.log[-1].date() != dt.date.today():
+            self.save_time()
+
+    def save_time(self):
+        logging.info("RcpMonitor save time")
+        now = dt.datetime.now().replace(second=0)
+        self.log.append(now)
+        self.save_log()
+        return self.process_log()
+
+    def load_log(self):
+        logging.info("RcpMonitor load logs")
+        now = dt.date.today()
+        if not os.path.exists(self._log_dir):
+            os.makedirs(self._log_dir)
+        if not os.path.exists(self._log_file):
+            logging.warning("No logs")
+            open(self._log_file, "a+")
+        with open(self._log_file, "r") as log:
+            for line in log:
+                entry = dt.datetime.strptime(line.strip(), self._pattern)
+                if self.LOG_SPAN > (now - entry.date()):
+                    self.log.append(entry)
+
+    def save_log(self):
+        logging.info("RcpMonitor save logs")
+        with open(self._log_file, 'w') as log:
+            for entry in self.log:
+                log.write(f"{entry.strftime(self._pattern)}\n")
 
     def process_log(self):
         last = None
-        self.worktime = {"day":defaultdict(datetime.timedelta), "week":0}
+        self.worktime = {"day":defaultdict(dt.timedelta), "week":0, "total":0}
         for entry in self.log:
             if last == None:
                 last = entry
@@ -29,30 +62,32 @@ class RcpMonitor:
             passed = entry - last
             self.worktime['day'][last.date()] += passed
             last = None
+        if dt.date.today() not in self.worktime['day']:
+            self.worktime['day'][dt.date.today()] = dt.timedelta()
         for day,time in self.worktime['day'].items():
             if day.isocalendar()[1] == self.cw:
                 self.worktime['week'] += time.total_seconds()/60
+                self.worktime['total'] += self.WORKDAY
 
-    def save_time(self):
-        logging.info("RcpMonitor save time")
-        now = datetime.datetime.now().replace(second=0)
-        self.log.append(now)
-        self.save_log()
-        return self.process_log()
+    def get_ttw(self):
+        now = dt.datetime.now()
+        working = len(self.log)%2
+        current = working * (now - self.log[-1]).total_seconds()//60
+        today_worked = self.worktime['day'][dt.date.today()].total_seconds()//60 + current
+        ttw = self.worktime["total"] - self.worktime["week"] - current
+        if ttw < 0:
+            ttw = - ttw
+            overtime = True
+        else:
+            overtime = False
+        hours = int(ttw//60)
+        minutes = int(ttw - 60*hours)
+        out_time = now +dt.timedelta(hours=hours, minutes=minutes)
+        out = f"\nOut at {out_time.strftime('%H:%M')}" if (working and not overtime) else ""
+        today = f"{today_worked//60:02.0f}:{today_worked%60:02.0f} / 8:00"
+        week = f"left {hours:02.0f}:{minutes:02.0f} to work" if not overtime else f"{hours:02.0f}:{minutes:02.0f} overtime"
+        return_string = f"{today} {week}{out}"
+        return (return_string, working)
 
-    def load_log(self):
-        logging.info("RcpMonitor load logs")
-        if not os.path.exists(self._log_dir):
-            os.makedirs(self._log_dir)
-        if not os.path.exists(self._log_file):
-            logging.warning("No logs")
-            open(self._log_file, "a+")
-        with open(self._log_file, "r") as log:
-            for line in log:
-                self.log.append(datetime.datetime.strptime(line.strip(), self._pattern))
-
-    def save_log(self):
-        logging.info("RcpMonitor save logs")
-        with open(self._log_file, 'w') as log:
-            for entry in self.log:
-                log.write(f"{entry.strftime(self._pattern)}\n")
+    def get_total_month(self):
+        pass
