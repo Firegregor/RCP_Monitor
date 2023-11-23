@@ -87,7 +87,7 @@ class RcpMonitor:
         minutes = int(ttw - 60*hours)
         out_time = now +dt.timedelta(hours=hours, minutes=minutes)
         teoretical = now + dt.timedelta(minutes=self.WORKDAY - today_worked)
-        out = f"\nTeoretical {teoretical.strftime('%H:%M')}, but out at {out_time.strftime('%H:%M')}" if (working and not overtime) else "\8 hours at {teoretical.strftime('%H:%M')}"
+        out = f"\nTeoretical {teoretical.strftime('%H:%M')}, but out at {out_time.strftime('%H:%M')}" if (working and not overtime) else f"\n8 hours at {teoretical.strftime('%H:%M')}"
         today = f"{today_worked//60:02.0f}:{today_worked%60:02.0f} / 8:00"
         week = f"left {hours:02.0f}:{minutes:02.0f} to work" if not overtime else f"{hours:02.0f}:{minutes:02.0f} overtime"
         return_string = f"{today} {week}{out}"
