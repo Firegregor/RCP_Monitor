@@ -6,7 +6,7 @@ from collections import defaultdict
 class RcpMonitor:
 
     WORKDAY = dt.timedelta(hours=8).total_seconds()//60
-    LOG_SPAN = dt.timedelta(days=32)
+    LOG_SPAN = dt.timedelta(days=62)
 
     def __init__(self, storage="~/.config/RCP_Monitor"):
         logging.info("RcpMonitor Init")
@@ -83,7 +83,8 @@ class RcpMonitor:
         hours = int(ttw//60)
         minutes = int(ttw - 60*hours)
         out_time = now +dt.timedelta(hours=hours, minutes=minutes)
-        out = f"\nOut at {out_time.strftime('%H:%M')}" if (working and not overtime) else ""
+        teoretical = now + dt.timedelta(minutes=self.WORKDAY - today_worked)
+        out = f"\nTeoretical {teoretical.strftime('%H:%M')}, but out at {out_time.strftime('%H:%M')}" if (working and not overtime) else "\8 hours at {teoretical.strftime('%H:%M')}"
         today = f"{today_worked//60:02.0f}:{today_worked%60:02.0f} / 8:00"
         week = f"left {hours:02.0f}:{minutes:02.0f} to work" if not overtime else f"{hours:02.0f}:{minutes:02.0f} overtime"
         return_string = f"{today} {week}{out}"
