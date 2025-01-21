@@ -5,9 +5,10 @@ import logging
 
 class RcpGui:
     colors=['red','green']
-    def __init__(self, save_callback, get_ttw, get_total_month):
+    def __init__(self, save_callback, get_ttw, get_total_month, synch_handlers=None):
         logging.info("RcpGui init")
         self._save = save_callback
+        self._synch = synch_handlers
         self.get_display = {"": lambda: ("Init", False), "Week": get_ttw, "Month": get_total_month}
         self.root = tk.Tk()
         self.display = None
@@ -27,6 +28,8 @@ class RcpGui:
         self.Mode.set("Week")
         ttk.Radiobutton(side, variable=self.Mode, text="Week", value="Week").pack()
         ttk.Radiobutton(side, variable=self.Mode, text="Month", value="Month").pack()
+        if self._synch is not None:
+            ttk.Button(side, text="Synch", command=lambda: [x() for x in self._synch]).pack()
         frame.pack(expand=True, fill=tk.BOTH, side=tk.LEFT)
         side.pack(expand=True, fill=tk.BOTH)
         self.display_update()
