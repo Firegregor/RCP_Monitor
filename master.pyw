@@ -8,7 +8,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logging.info("RCP_Monitor started")
     with open("config.json") as log:
-        config = json.loads(log)
+        config = json.loads(log.read())
     mon = RcpMonitor(storage=config["storage"],synch_addr=config["remote"])
     if len(sys.argv) == 1:
         RcpGui(

@@ -56,9 +56,14 @@ class RcpMonitor:
             return
         logging.info(f"RcpMonitor synchronising with {self._synch}")
         remote_file = os.path.join(self._log_dir, "tmp.log")
-        os.system(f"scp {self._synch} {remote_file}")
-        self.load_log(remote_file,self.remote_log)
-        os.remove(remote_file)
+        if os.path.exists(self._log_file):
+            print("*"*20)
+            os.system(f"scp {self._synch}/time.log {remote_file}")
+            print("*"*20)
+            self.load_log(remote_file,self.remote_log)
+            os.remove(remote_file)
+        else:
+            os.system(f"scp {self._synch}/time.log {self._log_file}")
 
     def save_time(self):
         logging.info("RcpMonitor save time")
