@@ -8,7 +8,7 @@ class RcpMonitor:
     WORKDAY = dt.timedelta(hours=8).total_seconds()//60
     LOG_SPAN = dt.timedelta(days=62)
 
-    def __init__(self, storage="~/.config/RCP_Monitor", synch_addr=None):
+    def __init__(self, storage="./res", synch_addr=None):
         logging.info("RcpMonitor Init")
         self._synch = synch_addr
         self._log_dir = os.path.expanduser(storage)
@@ -42,6 +42,7 @@ class RcpMonitor:
                 final.add(line)
         self.log = list(final)
         self.log.sort()
+        self.save_log()
 
     def send_remote(self):
         if self._synch is None:
@@ -57,7 +58,7 @@ class RcpMonitor:
         remote_file = os.path.join(self._log_dir, "tmp.log")
         os.system(f"scp {self._synch} {remote_file}")
         self.load_log(remote_file,self.remote_log)
-        os.system(f"rm {remote_file}")
+        os.remove(remote_file)
 
     def save_time(self):
         logging.info("RcpMonitor save time")

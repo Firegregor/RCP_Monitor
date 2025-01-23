@@ -1,13 +1,15 @@
 from src import RcpMonitor, RcpGui
 import sys
+import json
 import logging
 
-REMOTE="gkot@91.225.132.94:Rcp/time.log"
 
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.info("RCP_Monitor started")
-    mon = RcpMonitor(synch_addr=REMOTE)
+    with open("config.json") as log:
+        config = json.loads(log)
+    mon = RcpMonitor(storage=config["storage"],synch_addr=config["remote"])
     if len(sys.argv) == 1:
         RcpGui(
             mon.save_time,
