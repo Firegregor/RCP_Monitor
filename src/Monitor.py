@@ -33,13 +33,14 @@ class RcpMonitor:
     def merge(self):
         logging.info(f"RcpMonitor merging logs {len(self.log)} with remote {len(self.remote_log)}")
         final = set(self.log)
-        for line in self.remote_log:
-            if line in final:
+        for entry in self.remote_log:
+            if entry in final:
                 continue
-            entry = dt.datetime.strptime(line.strip(), self._pattern)
-            if self.LOG_SPAN > (now - entry.date()):
-                logging.info(f"New Entry: {line}")
-                final.add(line)
+            if self.LOG_SPAN > (dt.datetime.now().date() - entry.date()):
+                logging.info(f"RcpMonitor Merge - New Entry: {entry}")
+                final.add(entry)
+            else:
+                logging.info(f"RcpMonitor Merge - Entry discarded {entry}")
         self.log = list(final)
         self.log.sort()
         self.save_log()
@@ -80,7 +81,7 @@ class RcpMonitor:
         if not os.path.exists(_file):
             logging.warning("No logs")
             open(self._log_file, "a+")
-        with open(self._log_file, "r") as log:
+        with open(_file, "r") as log:
             for line in log:
                 entry = dt.datetime.strptime(line.strip(), self._pattern)
                 if self.LOG_SPAN > (now - entry.date()):
