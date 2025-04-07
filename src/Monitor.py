@@ -8,10 +8,10 @@ class RcpMonitor:
     WORKDAY = dt.timedelta(hours=8).total_seconds()//60
     LOG_SPAN = dt.timedelta(days=62)
 
-    def __init__(self, storage="./res", synch_addr=None):
+    def __init__(self, config):
         logging.info("RcpMonitor Init")
-        self._synch = synch_addr
-        self._log_dir = os.path.expanduser(storage)
+        self._synch = config["remote"]
+        self._log_dir = os.path.expanduser(config['storage'])
         self._log_file = os.path.join(self._log_dir, "time.log")
         logging.debug(f"RcpMonitor storage in {self._log_file}")
         self._pattern = "%d-%m-%Y %H:%M:%S"

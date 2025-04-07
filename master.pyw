@@ -1,17 +1,16 @@
-from src import RcpMonitor, RcpGui
+from src import RcpMonitor, RcpGui, config
 import sys
-import json
 import logging
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.info("RCP_Monitor started")
-    with open("config.json") as log:
-        config = json.loads(log.read())
-    mon = RcpMonitor(storage=config["storage"],synch_addr=config["remote"])
+    config["update"]()
+    mon = RcpMonitor(config["monitor"])
     if len(sys.argv) == 1:
         RcpGui(
+            config["gui"],
             mon.save_time,
             mon.get_ttw,
             mon.get_total_month,

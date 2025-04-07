@@ -4,9 +4,9 @@ import logging
 
 
 class RcpGui:
-    colors=['red','green']
-    def __init__(self, save_callback, get_ttw, get_total_month, synch_handlers=None):
+    def __init__(self, config, save_callback, get_ttw, get_total_month, synch_handlers=None):
         logging.info("RcpGui init")
+        self.config = config
         self._save = save_callback
         self._synch = synch_handlers
         self.get_display = {"": lambda: ("Init", False), "Week": get_ttw, "Month": get_total_month}
@@ -17,7 +17,7 @@ class RcpGui:
 
     def setup_layout(self):
         logging.info("RcpGui setup layout")
-        self.root.geometry("375x150")
+        self.root.geometry(self.config["geometry"])
         frame = tk.Frame(self.root)
         self.display = ttk.Label(frame,background="red", anchor="center")
         self.display.bind("<Button-1>", self.save)
@@ -38,7 +38,7 @@ class RcpGui:
         logging.debug("RcpGui refresh")
         display, working = self.get_display[self.Mode.get()]()
         self.display["text"] = display
-        self.display["background"]=self.colors[working]
+        self.display["background"]=self.config["colors"][working]
         self.root.after(1000, self.display_update)
 
     def save(self, *args):
